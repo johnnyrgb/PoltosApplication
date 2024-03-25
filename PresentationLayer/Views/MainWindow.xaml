@@ -1,0 +1,442 @@
+﻿<Window x:Class="PresentationLayer.Views.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:md="http://materialdesigninxaml.net/winfx/xaml/themes"
+        xmlns:notifications="clr-namespace:Notification.Wpf.Controls;assembly=Notification.Wpf"
+        xmlns:lvc="clr-namespace:LiveChartsCore.SkiaSharpView.WPF;assembly=LiveChartsCore.SkiaSharpView.WPF"
+        xmlns:local="clr-namespace:PresentationLayer.Views"
+        mc:Ignorable="d"
+        Title="MainWindow" Height="720" Width="1080">
+    <Grid>
+        <notifications:NotificationArea x:Name="WindowArea" Position="TopRight" MaxItems="3"></notifications:NotificationArea>
+        <Grid>
+            <TabControl Style="{DynamicResource MaterialDesignFilledTabControl}" 
+                        TabStripPlacement="Left"
+                        >
+                <TabItem Header="Записи">
+                    <Grid Margin="20">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="250"/>
+                        </Grid.ColumnDefinitions>
+                        <Grid Grid.Column="0">
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition/>
+                            </Grid.RowDefinitions>
+                            <TextBlock Text="Записи"
+                                       Style="{DynamicResource MaterialDesignHeadline3TextBlock}"
+                                       Grid.Row="0"
+                                       Grid.Column="0"/>
+                            <Button x:Name="AddNewTransaction"
+                    Style="{DynamicResource MaterialDesignFloatingActionAccentButton}"
+                    Panel.ZIndex="1"
+                    Grid.Row="1"
+                    VerticalAlignment="Bottom"
+                    HorizontalAlignment="Right"
+                    Margin="20"
+                    Width="40"
+                    Height="40"
+                    Command="{Binding AddNewTransactionCommand }">
+                                <md:PackIcon Kind="plus"/>
+                            </Button>
+                            
+                            <Grid Grid.Row="1">
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="40"/>
+                                    <RowDefinition Height="*"/>
+                                </Grid.RowDefinitions>
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="1*"/>
+                                        <ColumnDefinition Width="1*"/>
+                                        <ColumnDefinition Width="1*"/>
+                                        <ColumnDefinition Width="2*"/>
+                                    </Grid.ColumnDefinitions>
+
+                                    <DatePicker Grid.Column="0"
+                                SelectedDate="{Binding StartDate}"
+                                Margin="10,0">
+                                    </DatePicker>
+                                    <DatePicker Grid.Column="1"
+                                SelectedDate="{Binding EndDate}"
+                                Margin="10,0">
+                                    </DatePicker>
+                                    <Button Grid.Column="2"
+                            Margin="10,0"
+                            Command="{Binding FindTransactionsCommand}">
+                                        Найти
+                                    </Button>
+                                    <Button Grid.Column="3"
+                            Margin="10,0"
+                            Command="{Binding SaveTransactionCommand}"
+                            CommandParameter="{Binding SelectedTransaction}">
+                                        Сохранить
+                                    </Button>
+                                </Grid>
+                                <DataGrid x:Name="TransactionsList"
+                              Grid.Row="1"
+                              Style="{DynamicResource MaterialDesignDataGrid}"
+                              ItemsSource="{Binding Transactions}"
+                              AutoGenerateColumns="False"
+                              CanUserAddRows="False"
+                              SelectedItem="{Binding SelectedTransaction, Mode=TwoWay}">
+                                    <DataGrid.Columns>
+                                        <DataGridTextColumn Header="Сумма"
+                                            Width="Auto"
+                                            Binding="{Binding Amount}"/>
+                                        <DataGridTextColumn Header="Дата"
+                                            Width="Auto"
+                                            Binding="{Binding Date,StringFormat=d, ConverterCulture=ru-RU}"/>
+                                        <DataGridTemplateColumn Header="Категория"
+                                            Width="Auto" >
+                                            <DataGridTemplateColumn.CellTemplate>
+                                                <DataTemplate>
+                                                    <ComboBox DisplayMemberPath="Name"
+                                              SelectedValue="{Binding TransactionCategoryId, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                              SelectedValuePath="Id"
+                                              ItemsSource="{Binding DataContext.TransactionCategories, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type Window}}}"
+                                               />
+                                                </DataTemplate>
+                                            </DataGridTemplateColumn.CellTemplate>
+                                        </DataGridTemplateColumn>
+
+                                        <DataGridTemplateColumn Header="Счет"
+                                                Width="Auto" >
+                                            <DataGridTemplateColumn.CellTemplate>
+                                                <DataTemplate>
+                                                    <ComboBox DisplayMemberPath="Name"
+                                              SelectedValue="{Binding AccountId, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                              SelectedValuePath="Id"
+                                              ItemsSource="{Binding DataContext.Accounts, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type Window}}}"
+                                               />
+                                                </DataTemplate>
+                                            </DataGridTemplateColumn.CellTemplate>
+                                        </DataGridTemplateColumn>
+                                    </DataGrid.Columns>
+
+                                </DataGrid>
+                            </Grid>
+                        </Grid>
+                        <Grid Grid.Column="1"
+              Margin="20,0,0,0">
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="*"/>
+                                <RowDefinition Height="*"/>
+                            </Grid.RowDefinitions>
+                            <StackPanel Grid.Row="0">
+                                <TextBlock Style ="{DynamicResource MaterialDesignSubtitle1TextBlock}" Text="Доходы:"/>
+                                <TextBlock Style="{DynamicResource MaterialDesignHeadline4TextBlock}" 
+                           Text="{Binding TotalIncomes}"
+                           Foreground="LightSeaGreen"/>
+                                <lvc:PieChart
+                              Series="{Binding IncomesSeries}"
+                              
+                              Width="200"
+                              Height="200"
+                              />
+                            </StackPanel>
+                            <StackPanel Grid.Row="1">
+                                <TextBlock Style ="{DynamicResource MaterialDesignSubtitle1TextBlock}" Text="Расходы:"/>
+                                <TextBlock Style="{DynamicResource MaterialDesignHeadline4TextBlock}" 
+                           Text="{Binding TotalExpenses}"
+                           Foreground="IndianRed"/>
+                                <lvc:PieChart Series="{Binding ExpensesSeries}"
+                              
+                              Width="200"
+                              Height="200"/>
+                            </StackPanel>
+                        </Grid>
+                    </Grid>
+
+                </TabItem>
+                <TabItem Style="{DynamicResource MaterialDesignTabItem}"
+                                Header="Категории"
+                                >
+                    <Grid Margin="20">
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="100"/>
+                            <RowDefinition Height="50"/>
+                            <RowDefinition Height="*"/>
+                        </Grid.RowDefinitions>
+                        <TextBlock Style="{DynamicResource MaterialDesignHeadline3TextBlock}"
+                                   Text="{Binding RelativeSource={RelativeSource AncestorType=TabItem}, Path=Header}"
+                                   Grid.Row="0"/>
+                        <Button x:Name="AddNewCategory"
+                                Style="{DynamicResource MaterialDesignFloatingActionAccentButton}"
+                                Panel.ZIndex="1"
+                                Grid.Row="2"
+                                VerticalAlignment="Bottom"
+                                HorizontalAlignment="Right"
+                                Margin="20"
+                                Width="40"
+                                Height="40"
+                                Command="{Binding AddNewTransactionCategory}">
+                            <md:PackIcon Kind="plus"/>
+                        </Button>
+                        <Button
+                            Grid.Row="1"
+                            Width="150"
+                            HorizontalAlignment="Right"
+                            Margin="10,0"
+                            Command="{Binding SaveTransactionCategories}"
+                            CommandParameter="{Binding SelectedCategory}">
+                            Сохранить
+                        </Button>
+                        <DataGrid Grid.Row="2"
+                                  Style="{DynamicResource MaterialDesignDataGrid}"
+                                  ItemsSource="{Binding UserCategories}"
+                                  AutoGenerateColumns="False"
+                                  CanUserAddRows="False"
+                                  SelectedItem="{Binding SelectedCategory, Mode=TwoWay}">
+                            <DataGrid.Columns>
+                                <DataGridTextColumn Header="Название"
+                                                    Width="Auto"
+                                                    Binding="{Binding Name}"/>
+                            </DataGrid.Columns>
+                        </DataGrid>
+                    </Grid>
+                </TabItem>
+                <TabItem Header="Счета">
+
+                    <Grid Margin="20">
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="100"/>
+                            <RowDefinition Height="*"/>
+                        </Grid.RowDefinitions>
+                        <Button x:Name="AddNewAccount"
+                                Style="{DynamicResource MaterialDesignFloatingActionAccentButton}"
+                                Panel.ZIndex="1"
+                                Grid.Row="1"
+                                VerticalAlignment="Bottom"
+                                HorizontalAlignment="Right"
+                                Margin="20"
+                                Width="40"
+                                Height="40"
+                                Command="{Binding AddNewAccountCommand }">
+                            <md:PackIcon Kind="plus"/>
+                        </Button>
+                        <TextBlock Style="{DynamicResource MaterialDesignHeadline3TextBlock}"
+                                   Text="{Binding RelativeSource={RelativeSource AncestorType=TabItem}, Path=Header}"/>
+                        <ScrollViewer HorizontalScrollBarVisibility="Disabled" 
+                                      VerticalScrollBarVisibility="Auto"
+                                      Grid.Row="1">
+
+                            <ItemsControl ItemsSource="{Binding Accounts}">
+                                <ItemsControl.ItemsPanel>
+                                    <ItemsPanelTemplate>
+                                        <WrapPanel />
+                                    </ItemsPanelTemplate>
+                                </ItemsControl.ItemsPanel>
+                                <ItemsControl.ItemTemplate>
+                                    <DataTemplate>
+                                        <md:Card Margin="32 30 0 0" 
+                                             Height="250" 
+                                             Width="350" 
+                                             UniformCornerRadius="20"
+                                             Background="Gray">
+                                            <Button 
+                                                Background="Transparent" 
+                                                Width="Auto" 
+                                                Height="auto"
+                                                HorizontalContentAlignment="Stretch"
+                                                VerticalContentAlignment="Stretch"
+                                                BorderBrush="Transparent"
+                                                Command="{Binding DataContext.EditAccountCommand, RelativeSource={RelativeSource AncestorType={x:Type ItemsControl}}}"
+                                                CommandParameter="{Binding}">
+                                                <Grid Margin="20">
+                                                    <Grid.RowDefinitions>
+                                                        <RowDefinition Height="1*"/>
+                                                        <RowDefinition Height="1*"/>
+                                                    </Grid.RowDefinitions>
+                                                    <StackPanel Grid.Row="0"
+                                                                VerticalAlignment="Top">
+                                                        <TextBlock Text="{Binding Name}" FontSize="14"  Foreground="White" VerticalAlignment="Center"/>
+                                                        <TextBlock Text="{Binding Balance}" FontSize="46"  Foreground="White" VerticalAlignment="Center"/>
+                                                    </StackPanel >
+                                                    <StackPanel Orientation="Vertical"
+                                                                    Grid.Row="1"
+                                                                    VerticalAlignment="Bottom">
+                                                        <StackPanel Orientation="Horizontal">
+                                                            <StackPanel.Style>
+                                                                <Style TargetType="StackPanel">
+                                                                    <Setter Property="Visibility" Value="Visible" />
+                                                                    <Style.Triggers>
+                                                                        <DataTrigger Binding="{Binding Limit}" Value="{x:Null}">
+                                                                            <Setter Property="Visibility" Value="Collapsed" />
+                                                                        </DataTrigger>
+                                                                    </Style.Triggers>
+                                                                </Style>
+                                                            </StackPanel.Style>
+                                                            <TextBlock Text="Лимит: " FontSize="14" Foreground="White" VerticalAlignment="Bottom"/>
+                                                            <TextBlock Text="{Binding Limit}" FontSize="14"  Foreground="White" VerticalAlignment="Bottom"/>
+                                                        </StackPanel>
+                                                        <StackPanel Orientation="Horizontal" >
+                                                            <StackPanel.Style>
+                                                                <Style TargetType="StackPanel">
+                                                                    <Setter Property="Visibility" Value="Visible" />
+                                                                    <Style.Triggers>
+                                                                        <DataTrigger Binding="{Binding Limit}" Value="{x:Null}">
+                                                                            <Setter Property="Visibility" Value="Collapsed" />
+                                                                        </DataTrigger>
+                                                                    </Style.Triggers>
+                                                                </Style>
+                                                            </StackPanel.Style>
+                                                            <TextBlock Text="Дата обновления: " FontSize="14" Foreground="White" VerticalAlignment="Bottom"/>
+                                                            <TextBlock Text="{Binding LimitRenewalDate, StringFormat=d, ConverterCulture=ru-RU}" FontSize="14"  Foreground="White" VerticalAlignment="Bottom"/>
+                                                        </StackPanel>
+                                                    </StackPanel>
+                                                </Grid>
+                                            </Button>
+
+                                        </md:Card>
+                                    </DataTemplate>
+                                </ItemsControl.ItemTemplate>
+                            </ItemsControl>
+                        </ScrollViewer>
+                    </Grid>
+
+                </TabItem>
+
+                <TabItem Header="Цели">
+                    <Grid Margin="20">
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="100"/>
+                            <RowDefinition Height="*"/>
+                        </Grid.RowDefinitions>
+                        <Button x:Name="AddNewGoal"
+                                Style="{DynamicResource MaterialDesignFloatingActionAccentButton}"
+                                Panel.ZIndex="1"
+                                Grid.Row="1"
+                                VerticalAlignment="Bottom"
+                                HorizontalAlignment="Right"
+                                Margin="20"
+                                Width="40"
+                                Height="40"
+                                Command="{Binding AddNewGoalCommand }">
+                            <md:PackIcon Kind="plus"/>
+                        </Button>
+                        <TextBlock Style="{DynamicResource MaterialDesignHeadline3TextBlock}"
+                                   Text="{Binding RelativeSource={RelativeSource AncestorType=TabItem}, Path=Header}"/>
+                        <ScrollViewer HorizontalScrollBarVisibility="Disabled" 
+                                      VerticalScrollBarVisibility="Auto"
+                                      Grid.Row="1">
+                            <ItemsControl ItemsSource="{Binding Goals}">
+                                <ItemsControl.ItemsPanel>
+                                    <ItemsPanelTemplate>
+                                        <WrapPanel />
+                                    </ItemsPanelTemplate>
+                                </ItemsControl.ItemsPanel>
+                                <ItemsControl.ItemTemplate>
+                                    <DataTemplate>
+                                        <md:Card Margin="32 30 0 0" 
+                                                 Height="250" 
+                                                 Width="350" 
+                                                 UniformCornerRadius="20"
+                                                 >
+                                            <md:Card.Style>
+                                                <Style TargetType="md:Card">
+                                                    <Setter Property="Background" Value="Gray"/>
+                                                    <Style.Triggers>
+                                                        <DataTrigger Binding="{Binding IsExpired}" Value="True">
+                                                            <Setter Property="Background" Value="IndianRed"/>
+                                                        </DataTrigger>
+                                                        <DataTrigger Binding="{Binding IsReached}" Value="True">
+                                                            <Setter Property="Background" Value="LightSeaGreen"/>
+                                                        </DataTrigger>
+                                                    </Style.Triggers>
+                                                </Style>
+                                                
+                                            </md:Card.Style>
+                                            <Grid>
+                                                <Grid.ColumnDefinitions>
+                                                    <ColumnDefinition Width="*"/>
+                                                    <ColumnDefinition Width="Auto"/>
+                                                </Grid.ColumnDefinitions>
+                                                <Button Grid.Column="1"
+                                                        Background="Transparent"
+       
+                                                        Width="Auto"
+                                                        Height="Auto"
+                                                        HorizontalAlignment="Right"
+                                                        VerticalAlignment="Top"
+                                                        BorderBrush="Transparent"
+                                                        Padding="0"
+                                                        Margin="10"
+                                                        Command="{Binding DataContext.DeleteGoalCommand, RelativeSource={RelativeSource AncestorType={x:Type ItemsControl}}}"
+                                                        CommandParameter="{Binding}"
+                                                            >
+                                                    <md:PackIcon Kind="Close" Margin="0" Width="25" Height="25"/>
+                                                </Button>
+                                                <Button Background="Transparent"
+                                                        Grid.Column="0"
+                                                        Width="Auto" 
+                                                        Height="auto"
+                                                        HorizontalContentAlignment="Stretch"
+                                                        VerticalContentAlignment="Stretch"
+                                                        BorderBrush="Transparent"
+                                                        Command="{Binding DataContext.EditGoalCommand, RelativeSource={RelativeSource AncestorType={x:Type ItemsControl}}}"
+                                                        CommandParameter="{Binding}"
+                                                        >
+                                                    <Grid Margin="20">
+                                                        <Grid.RowDefinitions>
+                                                            <RowDefinition Height="1*"/>
+                                                            <RowDefinition Height="1*"/>
+                                                        </Grid.RowDefinitions>
+                                                        <StackPanel Grid.Row="0"
+                                                                    VerticalAlignment="Top">
+                                                            <Grid>
+                                                                <Grid.ColumnDefinitions>
+                                                                    <ColumnDefinition Width="*"/>
+                                                                    <ColumnDefinition Width="Auto"/>
+                                                                </Grid.ColumnDefinitions>
+                                                                <TextBlock Text="{Binding Name}" FontSize="14"  Foreground="White" VerticalAlignment="Center"
+                                                                            Grid.Column="0"/>
+
+                                                            </Grid>
+
+
+                                                            <StackPanel Orientation="Horizontal"
+                                                                        VerticalAlignment="Center"
+                                                                        Margin="0,10">
+                                                                <StackPanel Orientation="Vertical"
+                                                                            Margin="0,0,20,0">
+                                                                    <TextBlock Text="Накоплено:" FontSize="14"  Foreground="White" VerticalAlignment="Center"/>
+                                                                    <TextBlock Text="{Binding Balance}" FontSize="36"  Foreground="White" VerticalAlignment="Bottom"/>
+                                                                </StackPanel>
+                                                                <StackPanel Orientation="Vertical">
+                                                                    <TextBlock Text="Необходимо:" FontSize="14"  Foreground="White" VerticalAlignment="Center"/>
+                                                                    <TextBlock Text="{Binding Amount}" FontSize="36"  Foreground="White" VerticalAlignment="Center"/>
+                                                                </StackPanel>
+                                                            </StackPanel>
+                                                        </StackPanel >
+                                                        <StackPanel Orientation="Vertical"
+                                                                    Grid.Row="1"
+                                                                    VerticalAlignment="Bottom">
+                                                            <StackPanel Orientation="Horizontal">
+
+                                                                <TextBlock Text="Дата начала: " FontSize="14" Foreground="White" VerticalAlignment="Bottom"/>
+                                                                <TextBlock Text="{Binding DateOfCreation, StringFormat=d, ConverterCulture=ru-RU}" FontSize="14"  Foreground="White" VerticalAlignment="Bottom"/>
+                                                            </StackPanel>
+                                                            <StackPanel Orientation="Horizontal">
+                                                                <TextBlock Text="Дата завершения: " FontSize="14" Foreground="White" VerticalAlignment="Bottom"/>
+                                                                <TextBlock Text="{Binding DateToSaveUp, StringFormat=d, ConverterCulture=ru-RU}" FontSize="14"  Foreground="White" VerticalAlignment="Bottom"/>
+                                                            </StackPanel>
+                                                        </StackPanel>
+                                                    </Grid>
+                                                </Button>
+                                            </Grid>
+                                           
+                                        </md:Card>
+                                    </DataTemplate>
+                                </ItemsControl.ItemTemplate>
+                            </ItemsControl>
+                        </ScrollViewer>
+                    </Grid>
+                </TabItem>
+            </TabControl>
+        </Grid>
+    </Grid>
+</Window>
